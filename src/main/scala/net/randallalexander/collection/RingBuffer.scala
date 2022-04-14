@@ -37,9 +37,25 @@ class RingBuffer[T: ClassTag](private val _size: Int) {
       //is there a better way to address the types than to use .map so an extra array is not allocated
       val startList = _internalArray.slice(_start, _size).map(_.asInstanceOf[T])
       val endList = _internalArray.slice(0, _next).map(_.asInstanceOf[T])
-      (startList ++ endList)
+      val newValue = new Array[T](available())
+      var next = 0
+      for (i <- _start until _size) {
+        newValue.update(next, _internalArray(i).asInstanceOf[T])
+        next = next + 1
+      }
+      for (i <- 0 until _next) {
+        newValue.update(next, _internalArray(i).asInstanceOf[T])
+        next = next + 1
+      }
+      newValue
     } else {
-      _internalArray.slice(_start.max(0), _next).map(_.asInstanceOf[T])
+      val newValue = new Array[T](available())
+      var next = 0
+      for (i <- _start until _next) {
+        newValue.update(next, _internalArray(i).asInstanceOf[T])
+        next = next + 1
+      }
+      newValue
     }
   }
 
@@ -77,15 +93,6 @@ class RingBuffer[T: ClassTag](private val _size: Int) {
       ()
     }
     this
-  }
-
-  def compact(): RingBuffer[T] = {
-    val ringBuffer = new RingBuffer[T](_size)
-    values().foreach { entry =>
-      ringBuffer.append(entry)
-      ()
-    }
-    ringBuffer
   }
 
   def pop(): Option[T] = {
