@@ -7,7 +7,7 @@ import scala.reflect.ClassTag
 
 //NOT THREAD SAFE
 class RingBuffer[T: ClassTag](private val _size: Int) {
-  private var _internalArray = new Array[Any](_size)
+  private val _internalArray = new Array[Any](_size)
   private var _start: Int = -1
   private var _next: Int = 0
 
